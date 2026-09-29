@@ -1,0 +1,2019 @@
+{
+  "submission_id": "20260929T213758531334Z",
+  "generated_at": "2026-09-29T21:37:58.531334+00:00",
+  "pages": [
+    {
+      "page_number": 1,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 2,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "low_resolution",
+          "severity": "warning",
+          "confidence": "high",
+          "evidence": {
+            "width": 396,
+            "height": 516,
+            "minimum_width": 512,
+            "minimum_height": 512
+          },
+          "action": "review",
+          "source_stage": "submission",
+          "note": "The page image is below the minimum resolution threshold."
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 5,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 6,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 8,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 9,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 10,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 11,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 12,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 13,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 14,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 15,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 16,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 17,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 18,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 19,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 20,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 21,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 22,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 23,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 24,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 25,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 26,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 27,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 28,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 29,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 30,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 31,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 32,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 33,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 34,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 35,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 36,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 37,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 38,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 39,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 40,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 41,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 42,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 43,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 44,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 45,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 46,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 47,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 48,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 49,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 50,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 51,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 52,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 53,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 54,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 55,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 56,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 57,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 58,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 59,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 60,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 61,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 62,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 63,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 64,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 65,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 66,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 67,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 68,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 69,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 70,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 71,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 72,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 73,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 74,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 75,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 76,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 77,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 78,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 79,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 80,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 81,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 82,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 83,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 84,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 85,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 86,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 87,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 88,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 89,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 90,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 91,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 92,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 93,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 94,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 95,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 96,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 97,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 98,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 99,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 100,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 101,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 102,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 103,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 104,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 105,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 106,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 107,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 108,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 109,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 110,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 111,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 112,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 113,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 114,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 115,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 116,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 117,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 118,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 119,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 120,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 121,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 122,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 123,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 124,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 125,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 126,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 127,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 128,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 129,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 130,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 131,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 132,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 133,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 134,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 135,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 136,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 137,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 138,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 139,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 140,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 141,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 142,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 143,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 144,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 145,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 146,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 147,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 148,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 149,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 150,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 151,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 152,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 153,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 154,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 155,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 156,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 157,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 158,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 159,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 160,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 161,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 162,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 163,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 164,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 165,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 166,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 167,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 168,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 169,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 170,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 171,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 172,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 173,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 174,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 175,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 176,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 177,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 178,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 179,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 180,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 181,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 182,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 183,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 184,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 185,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 186,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 187,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 188,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 189,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 190,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 191,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 192,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 193,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 194,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 195,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 196,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 197,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 198,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 199,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 200,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 201,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 202,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 203,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 204,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 205,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 206,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 207,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 208,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 209,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 210,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 211,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 212,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 213,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 214,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 215,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 216,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 217,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 218,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 219,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 220,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 221,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 222,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 223,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 224,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 225,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 226,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 227,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 228,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 229,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 230,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 231,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 232,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 233,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 234,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 235,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 236,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 237,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 238,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 239,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 240,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 241,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 242,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 243,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 244,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 245,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 246,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 247,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 248,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 249,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 250,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 251,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 252,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 253,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 254,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 255,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 256,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 257,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 258,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 259,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 260,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 261,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 262,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 263,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 264,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 265,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 266,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 267,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 268,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 269,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 270,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 271,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 272,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 273,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 274,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 275,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 276,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 277,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 278,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 279,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 280,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 281,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 282,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 283,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 284,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 285,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 286,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 287,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 288,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 289,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 290,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 291,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 292,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 293,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 294,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 295,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 296,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 297,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 298,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 299,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 300,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 301,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 302,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 303,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 304,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 305,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 306,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 307,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 308,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 309,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 310,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 311,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 312,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 313,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 314,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 315,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 316,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 317,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 318,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 319,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 320,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 321,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 322,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 323,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 324,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 325,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 326,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 327,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 328,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 329,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 330,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 331,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 332,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 333,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 334,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 335,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 336,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 337,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 338,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 339,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 340,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 341,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 342,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 343,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 344,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 345,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 346,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 347,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 348,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 349,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 350,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 351,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 352,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 353,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 354,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 355,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 356,
+      "stage": "submission",
+      "issues": []
+    },
+    {
+      "page_number": 357,
+      "stage": "submission",
+      "issues": [
+        {
+          "category": "blank_page",
+          "severity": "blocking",
+          "confidence": "high",
+          "evidence": {
+            "blank_ratio": 1.0,
+            "threshold": 0.999
+          },
+          "action": "skipped",
+          "source_stage": "submission",
+          "note": "The page appears blank and is not useful for transcription."
+        }
+      ]
+    },
+    {
+      "page_number": 358,
+      "stage": "submission",
+      "issues": []
+    }
+  ]
+}

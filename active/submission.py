@@ -1,300 +1,581 @@
-"""
-File: submission.py
-Project: Yizkor Pipeline
-Author: Elijah Greenberg
-Description: File submission handling for Yizkor Books.
-"""
+"""Function contracts for submission intake and baseline page evaluation.
 
-
-"""
-Desired Method of Upload:
- - From Computer
- - Single PDF file only
-
-These submissions are stored locally on the user's computer.
+The submission stage validates one source PDF, renders its pages, evaluates
+each page, and saves the first workflow checkpoint. The manifest records
+operational state; quality notes preserve the evidence behind decisions.
 """
 
+import copy
+import json
 import os
+import tempfile
 
 
-ACCEPTED_FILE_FORMATS = ['.pdf']
+# 1. Source PDF intake
+
+def normalize_submission_path(raw_path: str) -> str:
+    """Return a filesystem path with surrounding whitespace and quotes removed.
+
+    Preconditions:
+        - raw_path is a string supplied by the caller.
+
+    Postconditions:
+        - The returned value is suitable for filesystem validation.
+        - This function does not check that the path exists or open the file.
+    """
+    if not isinstance(raw_path, str):
+        raise TypeError("Submission path must be a string")
+
+    return raw_path.strip().strip("\"'").strip()
 
 
-# ---------------------------------------------------------------------------
-# Submission prompts
-# ---------------------------------------------------------------------------
-def get_submission_path():
-    print("Please enter the path to the PDF file:")
-    return input("File path: ")
+def validate_submission_pdf(path: str) -> str:
+    """Validate and return the path to one readable, existing PDF file.
 
-# ---------------------------------------------------------------------------
-# Path validation
-# ---------------------------------------------------------------------------
-def verify_file_path(path):
-    if not os.path.isfile(path):
-        raise ValueError("Invalid file path")
+    Raises:
+        ValueError: The path is missing, is not a file, or is not a PDF.
 
-    _, ext = os.path.splitext(path)
-    if ext.lower() not in ACCEPTED_FILE_FORMATS:
-        raise ValueError("File format not accepted")
-
-    return path
-
-
-def normalize_path(path):
-    if not isinstance(path, str):
-        return path
-
-    return path.strip().strip('"').strip("'")
-
-
-def verify_submission_path(path):
-    normalized_path = normalize_path(path)
+    Postconditions:
+        - The returned path identifies the validated source PDF.
+        - No page images or pipeline records have been created.
+    """
+    normalized_path = normalize_submission_path(path)
 
     if not os.path.isfile(normalized_path):
         raise ValueError("Invalid file path")
 
-    return verify_file_path(normalized_path)
+    _, extension = os.path.splitext(normalized_path)
+    if extension.lower() != ".pdf":
+        raise ValueError("File format not accepted; expected a PDF")
 
-# ---------------------------------------------------------------------------
-# Pdf Splitting
-# ---------------------------------------------------------------------------
-def _render_pdf_page_to_png(pdf_path, page_index, output_dir):
-    """Render a single PDF page to a PNG file in a worker process."""
-    import fitz
+    try:
+        with open(normalized_path, "rb") as source_file:
+            header = source_file.read(1024)
+    except OSError as error:
+        raise ValueError("PDF file cannot be read") from error
 
-    document = fitz.open(pdf_path)
-    page = document.load_page(page_index)
-    pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
+    if b"%PDF-" not in header:
+        raise ValueError("File does not contain a valid PDF header")
 
-    page_path = os.path.join(output_dir, f"page_{page_index + 1:03d}.png")
-    pixmap.save(page_path)
-    document.close()
-    return page_path
+    return normalized_path
 
 
-def split_pdf_into_pages(path, output_dir=None, max_workers=None):
-    """
-    Split a PDF into one-page PNG images and return the paths to the extracted files.
+# 2. Page rendering
 
-    Default storage location:
-        next to the original PDF, inside a folder named '<original_name>_pages/'
+def render_pdf_pages(source_pdf: str, image_directory: str) -> list[dict[str, object]]:
+    """Render source pages and return one ordered record for each PDF page.
 
-    Example:
-        C:/documents/submission.pdf
-        -> C:/documents/submission_pages/page_001.png
-        -> C:/documents/submission_pages/page_002.png
+    Successfully rendered records contain:
+        - page_number: the original, one-based PDF page number
+        - image_path: the path to that page's rendered image
+
+    A page that cannot be rendered contains page_number, image_path set to
+    None, and render_error with the failure detail.
+
+    Preconditions:
+        - source_pdf has passed validate_submission_pdf.
+        - image_directory is reserved for this submission's rendered pages.
+
+    Postconditions:
+        - Every source page has exactly one record in original order.
+        - A failed page is not omitted or represented as a successful image.
+
+    Raises:
+        ValueError: The PDF contains no pages.
+        OSError: The PDF cannot be opened or the image directory cannot be created.
     """
     try:
-        import fitz
-    except ImportError as exc:
+        import pymupdf
+    except ImportError as error:
         raise ImportError(
-            "PyMuPDF is required to convert PDF pages to PNG. Install it with: pip install pymupdf"
-        ) from exc
+            "PyMuPDF is required to render PDF pages. Install it with: pip install pymupdf"
+        ) from error
 
-    validated_path = verify_submission_path(path)
+    validated_pdf = validate_submission_pdf(source_pdf)
+    os.makedirs(image_directory, exist_ok=True)
 
-    if output_dir is None:
-        pdf_dir = os.path.dirname(os.path.abspath(validated_path))
-        pdf_name = os.path.splitext(os.path.basename(validated_path))[0]
-        output_dir = os.path.join(pdf_dir, f"{pdf_name}_pages")
+    try:
+        document = pymupdf.open(validated_pdf)
+    except Exception as error:
+        raise OSError(f"Could not open PDF: {validated_pdf}") from error
 
-    os.makedirs(output_dir, exist_ok=True)
-
-    document = fitz.open(validated_path)
     try:
         page_count = document.page_count
         if page_count == 0:
             raise ValueError("PDF contains no pages")
+
+        page_records = []
+        for page_index in range(page_count):
+            page_number = page_index + 1
+            image_path = os.path.join(
+                image_directory,
+                f"page_{page_number:03d}.png",
+            )
+
+            try:
+                page = document.load_page(page_index)
+                pixmap = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), alpha=False)
+                pixmap.save(image_path)
+            except Exception as error:
+                page_records.append({
+                    "page_number": page_number,
+                    "image_path": None,
+                    "render_error": str(error) or type(error).__name__,
+                })
+                continue
+
+            page_records.append({
+                "page_number": page_number,
+                "image_path": image_path,
+            })
+
+        return page_records
     finally:
         document.close()
 
-    if max_workers is None:
-        max_workers = max(1, min(os.cpu_count() or 1, page_count, 4))
 
-    page_paths = []
-    from concurrent.futures import ProcessPoolExecutor, as_completed
+# 3. Page quality findings and state decisions
 
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        futures = {
-            executor.submit(_render_pdf_page_to_png, validated_path, page_index, output_dir): page_index
-            for page_index in range(page_count)
-        }
+_BLANK_PAGE_THRESHOLD = 0.999
+_MIN_PAGE_WIDTH = 512
+_MIN_PAGE_HEIGHT = 512
+_QUALITY_SAMPLE_SIZE = 64
 
-        for future in as_completed(futures):
-            page_paths.append(future.result())
 
-    page_paths.sort(key=lambda page_path: int(os.path.basename(page_path).replace("page_", "").replace(".png", "")))
-    return page_paths
+def evaluate_page_quality(
+    page_number: int,
+    image_path: str,
+) -> list[dict[str, object]]:
+    """Return zero or more structured quality issues found on one page.
 
-# ---------------------------------------------------------------------------
-# Verify Quality of pngs
-# ---------------------------------------------------------------------------
+    Each issue contains category, severity, confidence, evidence, action,
+    source_stage, and a concise human-readable note. Initial findings use
+    source_stage "submission". A clean page returns an empty list.
 
-def verify_page_quality(page_paths, blank_threshold=0.99, min_width=512, min_height=512):
-    """
-    Verify the quality of the extracted PNG pages in a single pass.
-
-    Rules:
-        - blank pages are replaced with a white placeholder to preserve page numbering
-        - low-resolution pages are flagged but not rejected
-        - duplicate pages are intentionally not checked
+    This function records findings only. It does not overwrite or replace the
+    rendered source image, prompt the user, or decide the page's final state.
     """
     from PIL import Image
-    import numpy as np
 
-    blank_pages = []
-    low_res_pages = []
+    try:
+        with Image.open(image_path) as image:
+            width, height = image.size
+            with image.convert("L") as sample:
+                sample.thumbnail((_QUALITY_SAMPLE_SIZE, _QUALITY_SAMPLE_SIZE))
+                pixels = sample.tobytes()
 
-    for page_path in page_paths:
-        with Image.open(page_path) as img:
-            width, height = img.size
+        if not pixels:
+            raise ValueError("Image contains no pixels")
+    except (OSError, ValueError) as error:
+        return [{
+            "category": "unreadable_image",
+            "severity": "blocking",
+            "confidence": "high",
+            "evidence": {"error": str(error)},
+            "action": "exclude",
+            "source_stage": "submission",
+            "note": "The rendered page image could not be read or evaluated.",
+        }]
 
-            if width < min_width or height < min_height:
-                low_res_pages.append(page_path)
+    issues = []
+    white_ratio = sum(pixel > 250 for pixel in pixels) / len(pixels)
+    if white_ratio >= _BLANK_PAGE_THRESHOLD:
+        issues.append({
+            "category": "blank_page",
+            "severity": "blocking",
+            "confidence": "high",
+            "evidence": {
+                "blank_ratio": round(white_ratio, 4),
+                "threshold": _BLANK_PAGE_THRESHOLD,
+            },
+            "action": "skipped",
+            "source_stage": "submission",
+            "note": "The page appears blank and is not useful for transcription.",
+        })
 
-            sample = img.convert("L")
-            sample.thumbnail((64, 64))
-            sample_array = np.asarray(sample)
-            white_ratio = np.mean(sample_array > 250)
+    if width < _MIN_PAGE_WIDTH or height < _MIN_PAGE_HEIGHT:
+        issues.append({
+            "category": "low_resolution",
+            "severity": "warning",
+            "confidence": "high",
+            "evidence": {
+                "width": width,
+                "height": height,
+                "minimum_width": _MIN_PAGE_WIDTH,
+                "minimum_height": _MIN_PAGE_HEIGHT,
+            },
+            "action": "review",
+            "source_stage": "submission",
+            "note": "The page image is below the minimum resolution threshold.",
+        })
 
-            if white_ratio >= blank_threshold:
-                blank_pages.append(page_path)
-                blank_page = Image.new("RGB", (width, height), color=(255, 255, 255))
-                blank_page.save(page_path)
+    return issues
 
-    if blank_pages:
-        print("Warning: Blank pages detected and replaced with blank placeholders:")
-        for page in blank_pages:
-            print(f" - {page}")
 
-    if low_res_pages:
-        print("Warning: Low resolution pages detected:")
-        for page in low_res_pages:
-            print(f" - {page}")
+def decide_initial_page_state(
+    issues: list[dict[str, object]],
+) -> tuple[str, str | None]:
+    """Choose the page's initial workflow state from its quality findings.
+
+    Returns:
+        A pair of (page_status, skip_reason). page_status is one of accepted,
+        needs_review, rejected, or skipped. skip_reason is present when the
+        page is skipped and otherwise is None.
+
+    Policy:
+        - Usable pages without meaningful risk are accepted.
+        - Usable but risky pages may be marked needs_review.
+        - Unusable pages are rejected or skipped according to their findings.
+        - A skipped page remains in the manifest with its original number.
+        - Quality evidence remains in quality notes; state is not a substitute
+          for the issue records.
+    """
+    categories = {issue.get("category") for issue in issues}
+    if "blank_page" in categories:
+        return "skipped", "blank_page"
+
+    if any(
+        issue.get("severity") == "blocking"
+        or issue.get("action") in {"exclude", "manual_verify"}
+        for issue in issues
+    ):
+        return "rejected", None
+
+    if any(
+        issue.get("severity") == "warning"
+        or issue.get("action") in {"review", "retry"}
+        for issue in issues
+    ):
+        return "needs_review", None
+
+    return "accepted", None
+
+
+def evaluate_submission_pages(
+    rendered_pages: list[dict[str, object]],
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    """Evaluate all rendered pages and return page records plus quality notes.
+
+    For each rendered page, collect its quality issues, choose exactly one
+    initial page state, and retain the original page number and image path.
+
+    Returns:
+        A pair of (manifest_page_records, quality_page_records).
+
+    Manifest page records contain page_number, image_path, and page_status;
+    skipped records also contain skip_reason. Quality page records contain
+    page_number, stage, and the page's issue list. Pages with no issues may
+    have an empty issue list so the record remains page-complete.
+    """
+    manifest_pages = []
+    quality_pages = []
+
+    for rendered_page in rendered_pages:
+        page_number = rendered_page["page_number"]
+        image_path = rendered_page.get("image_path")
+        if "render_error" in rendered_page:
+            issues = [{
+                "category": "rendering_failure",
+                "severity": "blocking",
+                "confidence": "high",
+                "evidence": {"error": rendered_page["render_error"]},
+                "action": "exclude",
+                "source_stage": "submission",
+                "note": "The source PDF page could not be rendered to an image.",
+            }]
+        else:
+            issues = evaluate_page_quality(page_number, image_path)
+        page_status, skip_reason = decide_initial_page_state(issues)
+
+        manifest_page = {
+            "page_number": page_number,
+            "image_path": image_path,
+            "page_status": page_status,
+        }
+        if skip_reason is not None:
+            manifest_page["skip_reason"] = skip_reason
+        manifest_pages.append(manifest_page)
+
+        quality_pages.append({
+            "page_number": page_number,
+            "stage": "submission",
+            "issues": issues,
+        })
+
+    return manifest_pages, quality_pages
+
+
+# 4. Submission manifest and quality-notes sidecar
+
+def create_submission_manifest(
+    submission_id: str,
+    source_pdf: str,
+    created_at: str,
+    pages: list[dict[str, object]],
+) -> dict[str, object]:
+    """Build the operational record for one submission.
+
+    The manifest includes submission_id, source_pdf, created_at, overall
+    status, and the complete ordered page list. Each page has one page_status;
+    skipped pages retain their original page_number and skip_reason. Keep
+    detailed evidence in quality_notes rather than duplicating it here.
+    """
+    if not submission_id or not isinstance(submission_id, str):
+        raise ValueError("submission_id must be a non-empty string")
+    if not isinstance(source_pdf, str) or not source_pdf:
+        raise ValueError("source_pdf must be a non-empty string")
+    if not isinstance(created_at, str) or not created_at:
+        raise ValueError("created_at must be a non-empty string")
+    if not isinstance(pages, list):
+        raise ValueError("pages must be a list")
+
+    valid_statuses = {"accepted", "needs_review", "rejected", "skipped"}
+    manifest_pages = []
+    previous_page_number = 0
+
+    for page in pages:
+        page_number = page.get("page_number")
+        image_path = page.get("image_path")
+        page_status = page.get("page_status")
+
+        if (
+            not isinstance(page_number, int)
+            or isinstance(page_number, bool)
+            or page_number <= previous_page_number
+        ):
+            raise ValueError("pages must have unique, increasing positive page numbers")
+        if page_status not in valid_statuses:
+            raise ValueError(f"invalid page_status: {page_status!r}")
+        if image_path is None:
+            if page_status != "rejected":
+                raise ValueError("only rejected pages may have no image_path")
+        elif not isinstance(image_path, str) or not image_path:
+            raise ValueError("image_path must be a non-empty string when present")
+
+        manifest_page = {
+            "page_number": page_number,
+            "image_path": image_path,
+            "page_status": page_status,
+        }
+        if page_status == "skipped":
+            skip_reason = page.get("skip_reason")
+            if not isinstance(skip_reason, str) or not skip_reason:
+                raise ValueError("skipped pages must include a non-empty skip_reason")
+            manifest_page["skip_reason"] = skip_reason
+        elif "skip_reason" in page:
+            raise ValueError("only skipped pages may include a skip_reason")
+
+        manifest_pages.append(manifest_page)
+        previous_page_number = page_number
 
     return {
-        "blank_pages": blank_pages,
-        "low_res_pages": low_res_pages,
+        "submission_id": submission_id,
+        "source_pdf": source_pdf,
+        "created_at": created_at,
+        "status": "in_progress",
+        "pages": manifest_pages,
     }
 
 
-def _extract_page_number(page_path):
-    """Return the page number implied by a page image filename, if present."""
-    filename = os.path.basename(page_path)
-    stem = os.path.splitext(filename)[0]
+def create_quality_notes(
+    submission_id: str,
+    generated_at: str,
+    page_findings: list[dict[str, object]],
+) -> dict[str, object]:
+    """Build the evidence sidecar for source-stage quality findings.
 
-    if not stem.startswith("page_"):
-        return None
+    The document includes submission_id, generated_at, and page-level records.
+    Each issue preserves category, severity, confidence, evidence, action,
+    source_stage, and note. Findings from later stages can be appended without
+    deleting earlier evidence.
+    """
+    if not submission_id or not isinstance(submission_id, str):
+        raise ValueError("submission_id must be a non-empty string")
+    if not isinstance(generated_at, str) or not generated_at:
+        raise ValueError("generated_at must be a non-empty string")
+    if not isinstance(page_findings, list):
+        raise ValueError("page_findings must be a list")
 
-    number_text = stem.replace("page_", "")
-    if not number_text.isdigit():
-        return None
+    valid_stages = {"submission", "transcription", "translation", "final_review"}
+    valid_severities = {"informational", "warning", "blocking"}
+    valid_confidences = {"low", "medium", "high"}
+    valid_actions = {"accepted", "review", "retry", "exclude", "manual_verify", "skipped"}
+    required_issue_fields = {
+        "category",
+        "severity",
+        "confidence",
+        "evidence",
+        "action",
+        "source_stage",
+        "note",
+    }
+    validated_pages = []
 
-    return int(number_text)
+    for page in page_findings:
+        page_number = page.get("page_number")
+        stage = page.get("stage")
+        issues = page.get("issues")
+        if (
+            not isinstance(page_number, int)
+            or isinstance(page_number, bool)
+            or page_number <= 0
+        ):
+            raise ValueError("each finding page must have a positive page_number")
+        if stage not in valid_stages:
+            raise ValueError(f"invalid quality stage: {stage!r}")
+        if not isinstance(issues, list):
+            raise ValueError("each finding page must have an issues list")
 
+        for issue in issues:
+            if not isinstance(issue, dict) or not required_issue_fields.issubset(issue):
+                raise ValueError("each issue must include all required quality fields")
+            if not isinstance(issue["category"], str) or not issue["category"]:
+                raise ValueError("each issue must have a non-empty category")
+            if issue["severity"] not in valid_severities:
+                raise ValueError(f"invalid issue severity: {issue['severity']!r}")
+            if issue["confidence"] not in valid_confidences:
+                raise ValueError(f"invalid issue confidence: {issue['confidence']!r}")
+            if issue["action"] not in valid_actions:
+                raise ValueError(f"invalid issue action: {issue['action']!r}")
+            if issue["source_stage"] not in valid_stages:
+                raise ValueError(f"invalid issue source_stage: {issue['source_stage']!r}")
+            if issue["source_stage"] != stage:
+                raise ValueError("issue source_stage must match its page stage")
+            if not isinstance(issue["note"], str):
+                raise ValueError("each issue note must be a string")
 
-def _format_page_ranges(page_paths):
-    """Convert page path values into a compact, human-readable page-range summary."""
-    page_numbers = []
-    for page_path in page_paths:
-        page_number = _extract_page_number(page_path)
-        if page_number is not None:
-            page_numbers.append(page_number)
+        validated_pages.append({
+            "page_number": page_number,
+            "stage": stage,
+            "issues": issues,
+        })
 
-    if not page_numbers:
-        return "none"
-
-    page_numbers = sorted(set(page_numbers))
-    ranges = []
-    start = prev = page_numbers[0]
-
-    for current in page_numbers[1:]:
-        if current == prev + 1:
-            prev = current
-            continue
-
-        if start == prev:
-            ranges.append(str(start))
-        else:
-            ranges.append(f"{start}-{prev}")
-
-        start = prev = current
-
-    if start == prev:
-        ranges.append(str(start))
-    else:
-        ranges.append(f"{start}-{prev}")
-
-    return ", ".join(ranges)
-
-
-def confirm_quality_issues(quality_report):
-    """Ask the user whether to continue when any page-quality issues are flagged."""
-    flag_labels = {
-        "blank_pages": "blank pages",
-        "low_res_pages": "low-resolution pages",
+    return {
+        "submission_id": submission_id,
+        "generated_at": generated_at,
+        "pages": copy.deepcopy(validated_pages),
     }
 
-    flagged_categories = []
-    total_flag_count = 0
 
-    for key, label in flag_labels.items():
-        pages = quality_report.get(key, [])
-        if pages:
-            flagged_categories.append((label, pages))
-            total_flag_count += len(pages)
+def write_submission_checkpoint(
+    output_directory: str,
+    manifest: dict[str, object],
+    quality_notes: dict[str, object],
+) -> tuple[str, str]:
+    """Persist the manifest and quality-notes sidecar before LLM processing.
 
-    if not flagged_categories:
-        return True
+    Returns:
+        A pair of (manifest_path, quality_notes_path).
 
-    print(f"Quality review found {total_flag_count} flagged pages in total.")
-    print("The extracted pages have the following quality flags:")
-    for label, pages in flagged_categories:
-        page_ranges = _format_page_ranges(pages)
-        print(f" - {label}: pages {page_ranges}")
+    Postconditions:
+        - The two JSON files are saved in the submission's output directory.
+        - The manifest and sidecar refer to the same submission_id.
+        - No transcription stage may begin until both files are written.
 
-    while True:
-        response = input("Do you want to continue with this submission? (y/n): ").strip().lower()
-        if response in ["y", "yes"]:
-            return True
-        if response in ["n", "no"]:
-            return False
-        print("Please enter 'y' for yes or 'n' for no.")
+    Raises:
+        OSError: Either checkpoint file cannot be written.
+    """
+    manifest_id = manifest.get("submission_id")
+    quality_notes_id = quality_notes.get("submission_id")
+    if not manifest_id or manifest_id != quality_notes_id:
+        raise ValueError("manifest and quality notes must have the same submission_id")
 
-# ---------------------------------------------------------------------------
-# Submission flow
-# ---------------------------------------------------------------------------
-def handle_submission_request():
-    while True:
-        path = get_submission_path()
+    os.makedirs(output_directory, exist_ok=True)
+    manifest_path = os.path.join(output_directory, "submission_manifest.json")
+    quality_notes_path = os.path.join(output_directory, "quality_notes.json")
+    pending_files = []
 
-        try:
-            validated_path = verify_submission_path(path)
-            page_paths = split_pdf_into_pages(validated_path)
-            quality_report = verify_page_quality(page_paths)
+    try:
+        for data in (manifest, quality_notes):
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=output_directory,
+                prefix=".checkpoint-",
+                suffix=".tmp",
+                delete=False,
+            ) as temporary_file:
+                pending_files.append(temporary_file.name)
+                json.dump(data, temporary_file, ensure_ascii=False, indent=2)
+                temporary_file.write("\n")
 
-            if not confirm_quality_issues(quality_report):
-                print("Submission canceled by user after quality review.")
-                return None
+        os.replace(pending_files[0], manifest_path)
+        pending_files.pop(0)
+        os.replace(pending_files[0], quality_notes_path)
+        pending_files.pop(0)
+    finally:
+        for temporary_path in pending_files:
+            try:
+                os.remove(temporary_path)
+            except FileNotFoundError:
+                pass
 
-            print("Submission successful. PDF validated and split into pages:")
-            for page_path in page_paths:
-                print(page_path)
-
-            return {
-                "source_pdf": validated_path,
-                "page_images": page_paths,
-                "quality_report": quality_report,
-            }
-        except ValueError as error:
-            print(f"Submission error: {error}")
-            print("Please try a different PDF path.")
-
-
-def main():
-    handle_submission_request()
+    return manifest_path, quality_notes_path
 
 
-if __name__ == "__main__":
-    main()
+# 5. Intake workflow entry point
+
+def create_submission(
+    source_path: str,
+    submission_id: str,
+    output_directory: str,
+    created_at: str,
+) -> dict[str, object]:
+    """Run intake through the first saved checkpoint for a single PDF.
+
+    Workflow:
+        1. Normalize and validate source_path.
+        2. Render pages into this submission's image directory.
+        3. Evaluate each page and assign its initial workflow state.
+        4. Build the manifest and quality-notes sidecar.
+        5. Persist both files before any LLM stage can run.
+
+    Returns a result containing the manifest, quality_notes, manifest_path,
+    and quality_notes_path. The manifest retains all original page numbers,
+    including pages marked skipped. If the valid PDF has no usable pages,
+    persist the findings and return a manifest with status "rejected".
+
+    The created_at value is also used as generated_at for the initial quality
+    notes checkpoint.
+
+    Raises:
+        ValueError: The source is invalid or the PDF contains no pages.
+        OSError: The PDF cannot be opened, the image directory cannot be
+            created, or checkpoint persistence fails. Individual page-render
+            failures are saved as rejected page findings instead.
+    """
+    validated_source = validate_submission_pdf(source_path)
+    source_pdf = os.path.abspath(validated_source)
+    submission_directory = os.path.abspath(output_directory)
+    image_directory = os.path.join(submission_directory, "page_images")
+
+    rendered_pages = render_pdf_pages(source_pdf, image_directory)
+    manifest_pages, quality_page_findings = evaluate_submission_pages(rendered_pages)
+
+    manifest = create_submission_manifest(
+        submission_id,
+        source_pdf,
+        created_at,
+        manifest_pages,
+    )
+    usable_statuses = {"accepted", "needs_review"}
+    if not any(page["page_status"] in usable_statuses for page in manifest_pages):
+        manifest["status"] = "rejected"
+
+    quality_notes = create_quality_notes(
+        submission_id,
+        created_at,
+        quality_page_findings,
+    )
+    manifest_path, quality_notes_path = write_submission_checkpoint(
+        submission_directory,
+        manifest,
+        quality_notes,
+    )
+
+    return {
+        "manifest": manifest,
+        "quality_notes": quality_notes,
+        "manifest_path": manifest_path,
+        "quality_notes_path": quality_notes_path,
+    }
