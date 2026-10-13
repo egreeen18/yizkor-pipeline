@@ -158,7 +158,7 @@ Transcribe the pages that are still active for processing. Skipped pages remain 
 
 - read the active page list from the manifest
 - process active pages in original page order
-- pass page metadata and known quality issues as structured context
+- carry page metadata and known quality issues in the structured page-job record; keep quality evidence out of the model prompt
 - use llm_client.py for model calls
 - save transcript output by page or section
 - keep skipped pages out of model work
