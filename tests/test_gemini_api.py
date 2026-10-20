@@ -33,12 +33,43 @@ class GeminiConfigTests(unittest.TestCase):
         self.temp_directory.cleanup()
 
     def test_get_gemini_api_key_reads_environment_value(self):
-        with patch.dict(os.environ, {"GEMINI_API_KEY": "  test-key-123  "}, clear=True):
+        with (
+            patch.dict(os.environ, {"GEMINI_API_KEY": "  test-key-123  "}, clear=True),
+            patch("active.gemini_api.get_stored_gemini_api_key") as stored_key,
+        ):
             self.assertEqual(get_gemini_api_key(), "test-key-123")
+        stored_key.assert_not_called()
 
     def test_get_gemini_api_key_rejects_missing_value(self):
-        with patch.dict(os.environ, {}, clear=True):
-            with self.assertRaisesRegex(ValueError, "GEMINI_API_KEY"):
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            patch("active.gemini_api.get_stored_gemini_api_key", return_value=None),
+        ):
+            with self.assertRaisesRegex(ValueError, "store_gemini_api_key"):
+                get_gemini_api_key()
+
+    def test_get_gemini_api_key_uses_stored_value_when_environment_is_absent(self):
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            patch(
+                "active.gemini_api.get_stored_gemini_api_key",
+                return_value="  saved-key  ",
+            ),
+        ):
+            self.assertEqual(get_gemini_api_key(), "saved-key")
+
+    def test_get_gemini_api_key_reports_unavailable_credential_store(self):
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            patch(
+                "active.gemini_api.get_stored_gemini_api_key",
+                side_effect=RuntimeError("Credential Manager unavailable"),
+            ),
+        ):
+            with self.assertRaisesRegex(
+                GeminiConfigurationError,
+                "Credential Manager unavailable",
+            ):
                 get_gemini_api_key()
 
     def test_get_gemini_config_uses_defaults_and_env_overrides(self):

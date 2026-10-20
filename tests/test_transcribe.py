@@ -17,6 +17,7 @@ from active.transcribe import (
     inspect_transcription_output,
     handle_transcription_provider_error,
     load_submission_context,
+    parse_transcription_result,
     prepare_page_job,
     save_transcription_result,
     select_active_pages,
@@ -118,6 +119,20 @@ class LoadSubmissionContextTests(unittest.TestCase):
                 "page_number": 1,
                 "image_path": "page_001.png",
                 "page_status": "transcribed",
+            }],
+        }
+        self.write_artifacts(manifest=manifest)
+
+        with self.assertRaisesRegex(ValueError, "invalid page_status"):
+            load_submission_context(self.directory)
+
+    def test_rejects_non_string_manifest_page_state(self):
+        manifest = {
+            **self.manifest,
+            "pages": [{
+                "page_number": 1,
+                "image_path": "page_001.png",
+                "page_status": [],
             }],
         }
         self.write_artifacts(manifest=manifest)
@@ -233,7 +248,7 @@ class PreparePageJobTests(unittest.TestCase):
     def tearDown(self):
         self.temp_directory.cleanup()
 
-    def test_builds_page_job_and_matching_revisit_quality_context(self):
+    def test_builds_page_job_with_relevant_quality_context_for_revisit(self):
         page_job = prepare_page_job(
             self.page,
             self.quality_notes,
@@ -242,6 +257,7 @@ class PreparePageJobTests(unittest.TestCase):
         )
 
         self.assertEqual(page_job["page_number"], 11)
+        self.assertEqual(page_job["scan_page_number"], 11)
         self.assertEqual(page_job["image_path"], str(self.image_path.resolve()))
         self.assertEqual(page_job["page_status"], "needs_review")
         self.assertEqual(page_job["source_stage"], "transcription")
@@ -253,10 +269,26 @@ class PreparePageJobTests(unittest.TestCase):
             ],
         )
 
-    def test_omits_quality_context_for_non_revisit_job(self):
+    def test_includes_source_issues_but_not_prior_transcription_issues_for_normal_job(self):
         page_job = prepare_page_job(self.page, self.quality_notes, self.directory)
 
-        self.assertNotIn("quality_context", page_job)
+        self.assertEqual(
+            page_job["quality_context"],
+            [{"category": "low_contrast", "note": "Dim scan."}],
+        )
+
+    def test_rejects_pages_that_must_not_be_sent_to_the_model(self):
+        for status in ("rejected", "skipped"):
+            with self.subTest(status=status):
+                page = {**self.page, "page_status": status}
+                with self.assertRaisesRegex(ValueError, "accepted or needs_review"):
+                    prepare_page_job(page, self.quality_notes, self.directory)
+
+    def test_rejects_non_string_page_status(self):
+        page = {**self.page, "page_status": []}
+
+        with self.assertRaisesRegex(ValueError, "accepted or needs_review"):
+            prepare_page_job(page, self.quality_notes, self.directory)
 
     def test_rejects_missing_or_unreadable_page_images(self):
         missing_page = {**self.page, "image_path": "page_images/missing.png"}
@@ -278,13 +310,18 @@ class BuildTranscriptionPromptTests(unittest.TestCase):
             "quality_context": [{"category": "low_contrast", "note": "Dim scan."}],
         })
 
-        self.assertIn("page 11", prompt)
+        self.assertIn("scan image 11", prompt)
         self.assertIn("original language and writing system", prompt)
         self.assertIn("reading order", prompt)
         self.assertIn("Do not translate", prompt)
-        self.assertIn("Do not", prompt)
+        for prohibited_action in ("summarize", "modernize", "correct", "infer", "invent"):
+            with self.subTest(prohibited_action=prohibited_action):
+                self.assertIn(prohibited_action, prompt)
         self.assertIn("[unclear]", prompt)
-        self.assertIn("Return only the transcription", prompt)
+        self.assertIn("Return only valid JSON", prompt)
+        self.assertIn("two-page spread", prompt)
+        self.assertIn("printed_page_number", prompt)
+        self.assertIn("Do not assume a fixed number of regions", prompt)
         self.assertNotIn("low_contrast", prompt)
         self.assertNotIn("Dim scan", prompt)
 
@@ -294,6 +331,105 @@ class BuildTranscriptionPromptTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "positive integer"):
             build_transcription_prompt({"page_number": 0})
+
+    def test_prompt_rejects_conflicting_scan_page_number(self):
+        with self.assertRaisesRegex(ValueError, "must match"):
+            build_transcription_prompt({
+                "page_number": 11,
+                "scan_page_number": 12,
+            })
+
+
+class ParseTranscriptionResultTests(unittest.TestCase):
+    def test_adds_authoritative_scan_index_and_preserves_region_order(self):
+        response = json.dumps({
+            "regions": [
+                {
+                    "position": "right",
+                    "printed_page_number": "11",
+                    "language": "Hebrew",
+                    "transcription": "Right-side text.",
+                },
+                {
+                    "position": "left",
+                    "printed_page_number": "12",
+                    "language": "Hebrew",
+                    "transcription": "Left-side text.",
+                },
+            ],
+        })
+
+        result = parse_transcription_result(response, 6)
+
+        self.assertEqual(result["scan_page_number"], 6)
+        self.assertEqual(result["regions"][0]["printed_page_number"], "11")
+        self.assertEqual(result["regions"][1]["printed_page_number"], "12")
+        self.assertEqual(result["regions"][0]["position"], "right")
+        self.assertEqual(result["regions"][1]["position"], "left")
+
+    def test_accepts_single_region_and_uncertain_optional_metadata(self):
+        response = json.dumps({
+            "regions": [{
+                "position": "center",
+                "printed_page_number": None,
+                "language": None,
+                "transcription": "Visible text.",
+            }],
+        })
+
+        result = parse_transcription_result(response, 25)
+
+        self.assertEqual(len(result["regions"]), 1)
+        self.assertIsNone(result["regions"][0]["printed_page_number"])
+        self.assertIsNone(result["regions"][0]["language"])
+
+    def test_accepts_no_text_regions_as_a_structural_result(self):
+        self.assertEqual(
+            parse_transcription_result('{"regions": []}', 26),
+            {"scan_page_number": 26, "regions": []},
+        )
+
+    def test_rejects_invalid_json_and_malformed_regions(self):
+        invalid_responses = [
+            ("not JSON", "valid JSON"),
+            ('{"transcription":"text"}', "regions array"),
+            ('{"regions":{}}', "regions must be a list"),
+            (
+                '{"regions":[{"position":"right","printed_page_number":11,'
+                '"language":"Hebrew"}]}',
+                "must contain exactly",
+            ),
+            (
+                '{"regions":[{"position":"","printed_page_number":null,'
+                '"language":null,"transcription":"text"}]}',
+                "position must be non-empty",
+            ),
+            (
+                '{"regions":[{"position":"right","printed_page_number":true,'
+                '"language":null,"transcription":"text"}]}',
+                "printed_page_number must be",
+            ),
+            (
+                '{"regions":[{"position":"right","printed_page_number":null,'
+                '"language":" ","transcription":"text"}]}',
+                "language must be",
+            ),
+            (
+                '{"regions":[{"position":"right","printed_page_number":null,'
+                '"language":null,"transcription":" "}]}',
+                "transcription must be non-empty",
+            ),
+        ]
+        for response, message in invalid_responses:
+            with self.subTest(response=response):
+                with self.assertRaisesRegex(ValueError, message):
+                    parse_transcription_result(response, 1)
+
+    def test_rejects_invalid_scan_page_number(self):
+        for scan_page_number in (0, True, "6"):
+            with self.subTest(scan_page_number=scan_page_number):
+                with self.assertRaisesRegex(ValueError, "positive integer"):
+                    parse_transcription_result('{"regions":[]}', scan_page_number)
 
 
 class TranscribePageWithGeminiTests(unittest.TestCase):
@@ -309,7 +445,10 @@ class TranscribePageWithGeminiTests(unittest.TestCase):
 
         with patch(
             "active.transcribe.transcribe_gemini_page",
-            return_value="Transcribed text.",
+            return_value=(
+                '{"regions":[{"position":"single","printed_page_number":null,'
+                '"language":"Hebrew","transcription":"Transcribed text."}]}'
+            ),
         ) as provider_call:
             result = transcribe_page_with_gemini(
                 page_job,
@@ -318,7 +457,11 @@ class TranscribePageWithGeminiTests(unittest.TestCase):
                 revisit=True,
             )
 
-        self.assertEqual(result, "Transcribed text.")
+        self.assertEqual(result["scan_page_number"], 11)
+        self.assertEqual(
+            result["regions"][0]["transcription"],
+            "Transcribed text.",
+        )
         provider_call.assert_called_once_with(
             page_job,
             prompt,
@@ -337,45 +480,164 @@ class TranscribePageWithGeminiTests(unittest.TestCase):
 
         self.assertIs(raised.exception, provider_error)
 
+    def test_rejects_malformed_provider_json(self):
+        with patch(
+            "active.transcribe.transcribe_gemini_page",
+            return_value="not JSON",
+        ):
+            with self.assertRaisesRegex(GeminiContentError, "valid JSON"):
+                transcribe_page_with_gemini(
+                    {"page_number": 11},
+                    "prompt",
+                )
+
+    def test_rejects_conflicting_manifest_and_scan_page_indices(self):
+        with patch(
+            "active.transcribe.transcribe_gemini_page",
+            return_value='{"regions":[]}',
+        ) as provider_call:
+            with self.assertRaisesRegex(ValueError, "must match"):
+                transcribe_page_with_gemini(
+                    {"page_number": 11, "scan_page_number": 12},
+                    "prompt",
+                )
+        provider_call.assert_not_called()
+
 
 class InspectTranscriptionOutputTests(unittest.TestCase):
+    def setUp(self):
+        self.single_region_result = {
+            "scan_page_number": 7,
+            "regions": [{
+                "position": "single",
+                "printed_page_number": "4",
+                "language": "Yiddish",
+                "transcription": "First line.\nSecond line.",
+            }],
+        }
+
     def test_clean_transcript_has_no_quality_findings(self):
         self.assertEqual(
-            inspect_transcription_output("First line.\nSecond line."),
+            inspect_transcription_output(self.single_region_result),
             [],
         )
 
     def test_unclear_markers_create_quality_note_compatible_finding(self):
-        findings = inspect_transcription_output("Readable [unclear] passage; [UNCLEAR].")
+        result = {
+            **self.single_region_result,
+            "regions": [{
+                **self.single_region_result["regions"][0],
+                "transcription": "Readable [unclear] passage; [UNCLEAR].",
+            }],
+        }
+        findings = inspect_transcription_output(result)
 
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["category"], "uncertain_or_missing_content")
         self.assertEqual(findings[0]["severity"], "warning")
         self.assertEqual(findings[0]["confidence"], "high")
-        self.assertEqual(findings[0]["evidence"], {"unclear_marker_count": 2})
+        self.assertEqual(
+            findings[0]["evidence"],
+            {
+                "regions": [{
+                    "region_index": 1,
+                    "position": "single",
+                    "unclear_marker_count": 2,
+                }],
+            },
+        )
         self.assertEqual(findings[0]["action"], "manual_verify")
         self.assertEqual(findings[0]["source_stage"], "transcription")
 
     def test_adjacent_duplicate_lines_are_flagged_with_line_numbers(self):
-        findings = inspect_transcription_output("Opening line.\nRepeated line.\nRepeated line.")
+        result = {
+            **self.single_region_result,
+            "regions": [{
+                **self.single_region_result["regions"][0],
+                "transcription": "Opening line.\nRepeated line.\nRepeated line.",
+            }],
+        }
+        findings = inspect_transcription_output(result)
 
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["category"], "repeated_text")
-        self.assertEqual(findings[0]["evidence"], {"duplicate_line_numbers": [3]})
+        self.assertEqual(
+            findings[0]["evidence"],
+            {
+                "regions": [{
+                    "region_index": 1,
+                    "position": "single",
+                    "duplicate_line_numbers": [3],
+                }],
+            },
+        )
         self.assertEqual(findings[0]["action"], "manual_verify")
 
     def test_nonadjacent_duplicate_lines_are_not_flagged(self):
         self.assertEqual(
-            inspect_transcription_output("Repeated line.\nOther line.\nRepeated line."),
+            inspect_transcription_output({
+                **self.single_region_result,
+                "regions": [{
+                    **self.single_region_result["regions"][0],
+                    "transcription": "Repeated line.\nOther line.\nRepeated line.",
+                }],
+            }),
             [],
         )
 
-    def test_rejects_empty_or_non_string_transcript(self):
-        with self.assertRaisesRegex(ValueError, "transcript must not be empty"):
-            inspect_transcription_output(" \n ")
+    def test_flags_empty_region_list_for_human_review(self):
+        findings = inspect_transcription_output({
+            "scan_page_number": 7,
+            "regions": [],
+        })
 
-        with self.assertRaisesRegex(TypeError, "transcript must be a string"):
+        self.assertEqual(findings[0]["severity"], "blocking")
+        self.assertEqual(findings[0]["category"], "uncertain_or_missing_content")
+        self.assertEqual(
+            findings[0]["evidence"],
+            {"scan_page_number": 7, "region_count": 0},
+        )
+        self.assertEqual(findings[0]["action"], "manual_verify")
+
+    def test_duplicate_detection_is_scoped_to_each_region(self):
+        result = {
+            "scan_page_number": 7,
+            "regions": [
+                {
+                    "position": "right",
+                    "printed_page_number": "11",
+                    "language": "Hebrew",
+                    "transcription": "Shared line.",
+                },
+                {
+                    "position": "left",
+                    "printed_page_number": "12",
+                    "language": "Hebrew",
+                    "transcription": "Shared line.",
+                },
+            ],
+        }
+
+        self.assertEqual(inspect_transcription_output(result), [])
+
+    def test_rejects_malformed_result_or_region(self):
+        with self.assertRaisesRegex(TypeError, "must be a mapping"):
             inspect_transcription_output(None)  # type: ignore[arg-type]
+
+        with self.assertRaisesRegex(ValueError, "positive integer"):
+            inspect_transcription_output({"scan_page_number": 0, "regions": []})
+
+        with self.assertRaisesRegex(ValueError, "must be a list"):
+            inspect_transcription_output({
+                "scan_page_number": 1,
+                "regions": {},
+            })
+
+        with self.assertRaisesRegex(ValueError, "must be an object"):
+            inspect_transcription_output({
+                "scan_page_number": 1,
+                "regions": [None],
+            })
 
 
 class SaveTranscriptionResultTests(unittest.TestCase):
@@ -386,33 +648,73 @@ class SaveTranscriptionResultTests(unittest.TestCase):
     def tearDown(self):
         self.temp_directory.cleanup()
 
-    def test_saves_first_page_transcript_as_utf8_without_modifying_text(self):
-        transcript = "שלום\nA faithful transcription.\n"
+    def make_result(self, text="שלום\nA faithful transcription.\n"):
+        return {
+            "scan_page_number": 7,
+            "regions": [{
+                "position": "single",
+                "printed_page_number": "3",
+                "language": "Hebrew",
+                "transcription": text,
+            }],
+        }
 
-        saved_path = save_transcription_result(self.directory, 7, transcript)
+    def test_saves_structured_result_as_utf8_json(self):
+        result = self.make_result()
+        saved_path = save_transcription_result(self.directory, 7, result)
 
-        expected_path = self.directory / "transcripts" / "page_007.txt"
+        expected_path = self.directory / "transcripts" / "page_007.json"
         self.assertEqual(Path(saved_path), expected_path)
-        self.assertEqual(expected_path.read_text(encoding="utf-8"), transcript)
+        self.assertEqual(
+            json.loads(expected_path.read_text(encoding="utf-8")),
+            result,
+        )
 
     def test_saves_revisits_as_numbered_attempts_without_overwriting(self):
-        initial_path = Path(save_transcription_result(self.directory, 7, "Initial text."))
-        second_path = Path(save_transcription_result(self.directory, 7, "Revisit text."))
-        third_path = Path(save_transcription_result(self.directory, 7, "Another revisit."))
+        initial_path = Path(save_transcription_result(
+            self.directory, 7, self.make_result("Initial text.")
+        ))
+        second_path = Path(save_transcription_result(
+            self.directory, 7, self.make_result("Revisit text.")
+        ))
+        third_path = Path(save_transcription_result(
+            self.directory, 7, self.make_result("Another revisit.")
+        ))
 
         attempts_directory = self.directory / "transcripts" / "page_007"
-        self.assertEqual(initial_path.read_text(encoding="utf-8"), "Initial text.")
-        self.assertEqual(second_path, attempts_directory / "attempt_002.txt")
-        self.assertEqual(third_path, attempts_directory / "attempt_003.txt")
-        self.assertEqual(second_path.read_text(encoding="utf-8"), "Revisit text.")
-        self.assertEqual(third_path.read_text(encoding="utf-8"), "Another revisit.")
+        self.assertEqual(
+            json.loads(initial_path.read_text(encoding="utf-8"))["regions"][0]["transcription"],
+            "Initial text.",
+        )
+        self.assertEqual(second_path, attempts_directory / "attempt_002.json")
+        self.assertEqual(third_path, attempts_directory / "attempt_003.json")
+        self.assertEqual(
+            json.loads(second_path.read_text(encoding="utf-8"))["regions"][0]["transcription"],
+            "Revisit text.",
+        )
+        self.assertEqual(
+            json.loads(third_path.read_text(encoding="utf-8"))["regions"][0]["transcription"],
+            "Another revisit.",
+        )
 
-    def test_rejects_invalid_page_number_and_blank_transcript(self):
+    def test_rejects_invalid_page_number_and_mismatched_scan_identity(self):
         with self.assertRaisesRegex(ValueError, "positive integer"):
-            save_transcription_result(self.directory, 0, "Text.")
+            save_transcription_result(self.directory, 0, self.make_result())
 
-        with self.assertRaisesRegex(ValueError, "must not be empty"):
-            save_transcription_result(self.directory, 1, " \n ")
+        with self.assertRaisesRegex(ValueError, "must match"):
+            save_transcription_result(self.directory, 8, self.make_result())
+
+    def test_rejects_malformed_region_result(self):
+        result = self.make_result()
+        result["regions"] = [{
+            "position": "single",
+            "printed_page_number": "3",
+            "language": "Hebrew",
+            "transcription": " ",
+        }]
+
+        with self.assertRaisesRegex(ValueError, "transcription must be non-empty"):
+            save_transcription_result(self.directory, 7, result)
 
 
 class AppendTranscriptionFindingsTests(unittest.TestCase):
@@ -436,8 +738,19 @@ class AppendTranscriptionFindingsTests(unittest.TestCase):
             }],
         }
 
+    def inspect_sample(self):
+        return inspect_transcription_output({
+            "scan_page_number": 7,
+            "regions": [{
+                "position": "single",
+                "printed_page_number": None,
+                "language": None,
+                "transcription": "Text with [unclear].",
+            }],
+        })
+
     def test_creates_transcription_stage_entry_without_mutating_input(self):
-        findings = inspect_transcription_output("Text with [unclear].")
+        findings = self.inspect_sample()
         original_quality_notes = json.loads(json.dumps(self.quality_notes))
 
         updated = append_transcription_findings(self.quality_notes, 7, findings)
@@ -470,7 +783,7 @@ class AppendTranscriptionFindingsTests(unittest.TestCase):
                 },
             ],
         }
-        new_finding = inspect_transcription_output("Text with [unclear].")[0]
+        new_finding = self.inspect_sample()[0]
 
         updated = append_transcription_findings(quality_notes, 7, [new_finding])
 
@@ -492,10 +805,19 @@ class AppendTranscriptionFindingsTests(unittest.TestCase):
             append_transcription_findings(self.quality_notes, 7, [{"category": "repeated_text"}])
 
         invalid_finding = {
-            **inspect_transcription_output("Text with [unclear].")[0],
+            **self.inspect_sample()[0],
             "source_stage": "submission",
         }
         with self.assertRaisesRegex(ValueError, "source_stage must be transcription"):
+            append_transcription_findings(self.quality_notes, 7, [invalid_finding])
+
+    def test_rejects_actions_outside_the_quality_specification(self):
+        invalid_finding = {
+            **self.inspect_sample()[0],
+            "action": "skipped",
+        }
+
+        with self.assertRaisesRegex(ValueError, "invalid issue action"):
             append_transcription_findings(self.quality_notes, 7, [invalid_finding])
 
 

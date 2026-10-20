@@ -160,7 +160,9 @@ Transcribe the pages that are still active for processing. Skipped pages remain 
 - process active pages in original page order
 - carry page metadata and known quality issues in the structured page-job record; keep quality evidence out of the model prompt
 - use llm_client.py for model calls
-- save transcript output by page or section
+- treat each manifest page number as a PDF scan index, not necessarily a printed book-page number
+- transcribe one or more ordered text regions per scan, with optional visual position, printed folio, and language metadata
+- save validated region results as UTF-8 JSON by scan index; preserve earlier attempts on revisits
 - keep skipped pages out of model work
 
 ### Useful inputs
@@ -169,13 +171,18 @@ Transcribe the pages that are still active for processing. Skipped pages remain 
 - page state
 - page-level flags and notes
 - readable structure signals
-- page number and surrounding context
+- PDF scan index and surrounding context
 
 ### Output
 
-- transcript output for active pages
+- structured region transcription output for active scans
 - per-page confidence or uncertainty notes
 - page-level risk records for the verification stage
+
+The model must not be assumed to encounter a fixed region count, a fixed
+language-to-position mapping, or equivalent narratives across regions. The
+workflow validates the structured response and adds authoritative scan identity
+from the manifest. Empty region output requires manual verification.
 
 ### Review behavior
 

@@ -1,2 +1,7 @@
 # Generated PDF page renders
 /runs/**/page_images/
+
+# Local environment secrets; keep committed examples in .env.example only
+.env
+.env.*
+!.env.example

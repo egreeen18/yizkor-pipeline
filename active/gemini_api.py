@@ -18,6 +18,8 @@ from dataclasses import dataclass
 from urllib import error as urllib_error
 from urllib import request as urllib_request
 
+from active.secret_store import get_stored_gemini_api_key
+
 DEFAULT_GEMINI_API_KEY_ENV_VAR = "GEMINI_API_KEY"
 DEFAULT_GEMINI_MODEL_ENV_VAR = "GEMINI_MODEL"
 DEFAULT_GEMINI_TIMEOUT_ENV_VAR = "GEMINI_TIMEOUT_SECONDS"
@@ -83,19 +85,25 @@ def _get_int_env_value(name: str, *, default: int, minimum: int = 1) -> int:
 
 
 def get_gemini_api_key() -> str:
-    """Return the configured Gemini API key.
+    """Return the Gemini API key from the environment or Windows Credential Manager.
 
-    The project docs do not specify a custom environment variable name, so the
-    conventional and provider-neutral default is GEMINI_API_KEY. This keeps the
-    API key out of the workflow logic and makes it easy to override without
-    changing the transcription stage contract.
+    GEMINI_API_KEY takes precedence when set. Otherwise, retrieve the key from
+    the local Windows credential store without writing it to project files.
     """
     api_key = _get_env_value(DEFAULT_GEMINI_API_KEY_ENV_VAR)
-    if not api_key:
+    if api_key:
+        return api_key
+
+    try:
+        api_key = get_stored_gemini_api_key()
+    except RuntimeError as error:
+        raise GeminiConfigurationError(str(error)) from error
+    if not api_key or not api_key.strip():
         raise GeminiConfigurationError(
-            "Gemini API key is not configured. Set the GEMINI_API_KEY environment variable."
+            "Gemini API key is not configured. Save it with "
+            "'python -m active.store_gemini_api_key' or set GEMINI_API_KEY."
         )
-    return api_key
+    return api_key.strip()
 
 
 def get_gemini_config(*, revisit: bool = False) -> dict[str, object]:

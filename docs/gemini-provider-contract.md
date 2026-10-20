@@ -52,10 +52,18 @@ A revisit must not silently overwrite earlier evidence.
 
 Required environment variables:
 
-- GEMINI_API_KEY
 - GEMINI_MODEL
 - GEMINI_TIMEOUT_SECONDS
 - GEMINI_MAX_RETRIES
+
+Credential:
+
+- On Windows, the Gemini API key can be stored in Windows Credential Manager
+  with `python -m active.store_gemini_api_key`.
+- At runtime, a non-empty `GEMINI_API_KEY` environment variable takes
+  precedence; otherwise, the provider reads the saved Windows credential.
+- The key is not stored in project files. Install `requirements.txt` first to
+  enable Credential Manager integration.
 
 Optional:
 
@@ -105,7 +113,8 @@ Only configuration failures are necessarily fatal. Request failures may be retri
 
 The transcription stage passes a minimal page-job mapping to `transcribe_gemini_page`:
 
-- page_number
+- page_number (the manifest's PDF scan index)
+- scan_page_number (the same authoritative scan index)
 - image_path
 - page_status
 - source_stage
@@ -113,11 +122,36 @@ The transcription stage passes a minimal page-job mapping to `transcribe_gemini_
 
 The workflow stage explicitly indicates a revisit when building the provider client or calling the page entry point. The provider does not infer revisit eligibility from page state or quality context. Page metadata stays available at the adapter boundary for traceability; only the image and transcription prompt are sent to Gemini. Quality evidence remains in quality_notes.json and is not copied into the model prompt.
 
-The provider returns:
+The provider returns the model's raw response text. The workflow asks Gemini
+for JSON containing an ordered `regions` array. Each region records a visual
+position, an optional printed folio, an optional language label, and the
+verbatim transcription. The workflow validates that response and attaches the
+scan index from the manifest; the model does not supply scan identity.
+Malformed JSON or an invalid region schema is classified as a content failure
+so the existing quality-review handoff can record it.
 
-- transcript text
-- provider metadata if useful for logging
-- an error category or structured error when the request fails
+The normalized workflow result has this shape:
+
+```json
+{
+  "scan_page_number": 12,
+  "regions": [
+    {
+      "position": "right",
+      "printed_page_number": "11",
+      "language": "Hebrew",
+      "transcription": "..."
+    }
+  ]
+}
+```
+
+A scan may contain one printed page, a spread, several text blocks, or an
+unusual layout. Region count, language, and narrative relationship must not be
+assumed from position. An empty region list is retained as a result but blocks
+progress for manual verification. Transcription artifacts are UTF-8 JSON files
+named by scan index; revisits use numbered JSON attempts and do not overwrite
+earlier results.
 
 The provider does not write the final transcript artifact or update the manifest.
 
